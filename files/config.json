@@ -1,4 +1,4 @@
 {
-    "db_setup": true,
-    "db_configured": true
+    "db_setup": false,
+    "db_configured": false
 }
