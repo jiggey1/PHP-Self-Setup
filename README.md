@@ -29,3 +29,29 @@ Although the code is messy, the product is a functional demo. The website featur
 
 # Notice:
 This code should not be put directly into a production environment! It does not use proper validation, error handling, or best practices since it was never meant to be a full-stack project. Instead, this project was created to show an example of how you would approach a self-setup webserver by using PHP, MySQL and HTML.
+
+# Showcase:
+
+<video src='https://github.com/jiggey1/PHP-Self-Setup/blob/main/assets/video/demo.mp4'></video>
+
+# Images:
+
+config.json (Before Config)
+
+![config.json before configuration](https://github.com/jiggey1/PHP-Self-Setup/blob/main/assets/images/before_config.png)
+
+config.json (After Config)
+
+![config.json after configuration](https://github.com/jiggey1/PHP-Self-Setup/blob/main/assets/images/after_config.png)
+
+database.json (Using Example From Video)
+
+![config.json after configuration](https://github.com/jiggey1/PHP-Self-Setup/blob/main/assets/images/example_db_file.png)
+
+The database & tables created using the MySQL Connection:
+
+![config.json after configuration](https://github.com/jiggey1/PHP-Self-Setup/blob/main/assets/images/database_created.png)
+
+How the user data is stored in the database:
+
+![config.json after configuration](https://github.com/jiggey1/PHP-Self-Setup/blob/main/assets/images/data_stored.png)
