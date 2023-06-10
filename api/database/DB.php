@@ -15,7 +15,7 @@ class DB
     private $DATABASE_USER;
     private $DATABASE_PASS;
 
-    public mysqli|false $con;
+    public mysqli $con;
 
     public function __construct()
     {
