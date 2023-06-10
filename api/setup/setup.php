@@ -93,8 +93,15 @@ switch ($request) {
             }
         }
 
+        if($pass !== $pass_conf) {
+            http_response_code(401);
+            exit("Passwords Didn't Match.");
+        }
+
+        $pass_prot = password_hash($pass, PASSWORD_DEFAULT);
+
         if($stmt = $con->prepare("INSERT INTO users (username, email, password, is_admin, uid) VALUES (?, ?, ?, ?, ?) ")) {
-            $stmt->bind_param("sssss", $name, $email, $pass, $admin, $uid);
+            $stmt->bind_param("sssss", $name, $email, $pass_prot, $admin, $uid);
             $stmt->execute();
             $result = $stmt->get_result();
 

@@ -63,16 +63,16 @@
             <h2>Database Setup</h2>
             <form action="./api/setup/setup.php?request=database_setup" target="_self" method="post">
                 <label for="db_host">Database Host (Example: localhost / 127.0.0.1)</label><br />
-                <input type="text" name="db_host" id="db_host" maxlength="40" required><br /><br />
+                <input autocomplete='off' type="text" name="db_host" id="db_host" maxlength="40" required><br /><br />
 
                 <label for="db_port">Database Port (Default Port: 3306)</label><br />
-                <input type="number" name="db_port" max="99999" id="db_port" maxlength="5" required><br /><br />
+                <input autocomplete='off' type="number" name="db_port" max="99999" id="db_port" maxlength="5" required><br /><br />
 
                 <label for="db_root_name">Database Root Username (Example: root)</label><br />
-                <input type="text" name="db_root_name" id="db_root_name" maxlength="128" required><br /><br />
+                <input autocomplete='off' type="text" name="db_root_name" id="db_root_name" maxlength="128" required><br /><br />
 
                 <label for="db_root_pass">Database Root Password (The 'root' users password.)</label><br />
-                <input type="text" name="db_root_pass" id="db_root_pass" maxlength="128" required><br /><br />
+                <input autocomplete='off' type="password" name="db_root_pass" id="db_root_pass" maxlength="128" required><br /><br />
 
                 <button type="submit">Setup Database</button>
             </form>
@@ -104,16 +104,16 @@
                 <p>Create an admin account. This will function as your main account, but will be setup as an administrator account.</p>
                 <form action="./api/setup/setup.php?request=account_setup" target="_self" method="post">
                     <label for="admin_name">Account Username:</label><br />
-                    <input type="text" name="admin_name" id="admin_name" maxlength="128" required><br /><br />
+                    <input autocomplete='off' type="text" name="admin_name" id="admin_name" maxlength="128" required><br /><br />
 
                     <label for="admin_email">Account E-Mail:</label><br />
-                    <input type="text" name="admin_email" id="admin_email" maxlength="128" required><br /><br />
+                    <input autocomplete='off' type="email" name="admin_email" id="admin_email" maxlength="128" required><br /><br />
 
                     <label for="admin_pass">Account Password:</label><br />
-                    <input type="text" name="admin_pass" id="admin_pass" maxlength="128" required><br /><br />
+                    <input autocomplete='off' type="password" name="admin_pass" id="admin_pass" maxlength="128" required><br /><br />
 
                     <label for="admin_pass_conf">Confirm Password:</label><br />
-                    <input type="text" name="admin_pass_conf" id="admin_pass_conf" maxlength="128" required><br /><br />
+                    <input autocomplete='off' type="password" name="admin_pass_conf" id="admin_pass_conf" maxlength="128" required><br /><br />
 
                     <button type="submit">Create Account</button>
                 </form>
