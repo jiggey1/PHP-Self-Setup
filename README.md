@@ -32,7 +32,7 @@ This code should not be put directly into a production environment! It does not 
 
 # Showcase:
 
-[Demo Video Of Entire Process](https://github.com/jiggey1/PHP-Self-Setup/blob/main/assets/video/demo.mp4)
+![config.json before configuration](https://github.com/jiggey1/PHP-Self-Setup/blob/main/assets/images/demo.gif)
 
 # Images:
 
