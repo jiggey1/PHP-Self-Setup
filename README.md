@@ -35,7 +35,7 @@ Although the code is messy, the product is a functional demo. The website featur
 # Notice:
 This code should not be put directly into a production environment! It does not use proper validation, error handling, or best practices since it was never meant to be a full-stack project. Instead, this project was created to show an example of how you would approach a self-setup webserver by using PHP, MySQL and HTML.
 
-# Showcase:
+# Showcase [Slightly Outdated]:
 
 ![config.json before configuration](https://github.com/jiggey1/PHP-Self-Setup/blob/main/assets/images/demo.gif)
 
