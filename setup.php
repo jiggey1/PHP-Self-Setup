@@ -31,7 +31,19 @@ if($stage == 2) {
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Setup Page</title>
+    <?php
+
+        if($stage == 0) {
+            echo "<title>Connect To Database - Setup</title>";
+        } else if ($stage == 1) {
+            echo "<title>Setup Database - Setup</title>";
+        } else if ($stage == 2) {
+            echo "<title>Admin Account Creation - Setup</title>";
+        } else {
+            echo "<title>Setup</title>";
+        }
+
+    ?>
 
     <!-- CSS Stylesheet -->
     <link rel="stylesheet" href="./assets/css/main.css">
