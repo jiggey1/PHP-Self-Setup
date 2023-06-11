@@ -1,53 +1,70 @@
 <?php
 
-include_once($_SERVER['DOCUMENT_ROOT'] . '/api/fileManager/SetupFileManager.php');
-include_once($_SERVER['DOCUMENT_ROOT'] . '/api/fileManager/DBFileManager.php');
-include_once($_SERVER['DOCUMENT_ROOT'] . '/api/crypt/Encryption.php');
+// Includes
+include_once($_SERVER['DOCUMENT_ROOT'] . "/api/setup/FileManagers/FileManager.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/api/setup/Crypt/Encryption.php");
+$fm = new FileManager();
 $crypt = new Encryption();
 
-// Creating The Setup Functions
-$setup = new SetupFileManager();
-$dbArray = getDBCredentials();
+/**
+ * This file is a self-contained API. It is to be used
+ * when NONE of the website has been configured yet.
+ * This is the main class to set up the project to work in any environment.
+ *
+ * @author jiggey
+ * @since 1.0.0
+ * @last_update 2.0.0
+ */
 
 if(isset($_GET['request'])) {
-    $request = $_GET['request'];
+    $case = $_GET['request'];
 } else {
-    $request = 'nothing';
+    $case = '';
 }
 
-switch ($request) {
-    case 'database_setup':
-        if(isset($_POST['db_root_name'])) {
-            if(!$setup->getDatabaseStatus()) {
-                if (testDatabase($_POST['db_host'], $_POST['db_port'], $_POST['db_root_name'], $_POST['db_root_pass'])) {
-                    configureDatabase($_POST['db_host'], $_POST['db_port'], $_POST['db_root_name'], $_POST['db_root_pass']);
+switch($case) {
 
-                    header("Location: ../../setup.php");
-                }
-            } else {
-                http_response_code(404);
-                header("Location: ../../setup.php");
-                exit();
-            }
-        } else {
-            exit("Error. No database credentials presented.");
+    case 'setupDatabase':
+
+        if (!isset($_POST['db_host']) || !isset($_POST['db_port']) || !isset($_POST['db_user']) || !isset($_POST['db_pass'])) {
+            http_response_code(500);
+            exit("This is currently not available. Please provide valid database information.");
         }
 
-        break;
-    case 'database_configure':
-        if(isDBReady()) {
-            header("Location: ../../setup.php");
+        if($fm->dbFile->testDatabase($_POST['db_host'], $_POST['db_port'], $_POST['db_user'], $_POST['db_pass'])) {
+            if($fm->dbFile->setupDatabase($_POST['db_host'], $_POST['db_port'], $_POST['db_user'], $_POST['db_pass'])) {
+                $fm->configFile->updateDbSetup(true);
+                http_response_code(200);
+                header("Location: ../../setup.php?e=false&msg=Database Linked. Ready to proceed!");
+                exit();
+            } else {
+                http_response_code(500);
+                exit("Error occurred somewhere. Please try again later.");
+            }
+        } else {
+            http_response_code(500);
+            exit("Incorrect Database Configuration. Make sure your MySQL server is running and you have provided VALID credentials.");
+        }
+
+    break;
+
+    case 'setupDatabaseEnvironment':
+        if(!$fm->isDbSetup()) {
+            http_response_code(500);
             exit();
         }
 
-        $tempCon = mysqli_connect($crypt->decrypt($dbArray[0]), $crypt->decrypt($dbArray[2]), $crypt->decrypt($dbArray[3]), null, $crypt->decrypt($dbArray[1]));
+        $dbInfo = $fm->dbFile->getDbInfo();
+        $tempCon = mysqli_connect($crypt->decrypt($dbInfo[0]), $crypt->decrypt($dbInfo[2]), $crypt->decrypt($dbInfo[3]), null, $crypt->decrypt($dbInfo[1]));
 
         if($stmt = $tempCon->prepare("CREATE DATABASE `tick_system`")) {
             $stmt->execute();
             $stmt->store_result();
         }
 
-        $con = mysqli_connect($crypt->decrypt($dbArray[0]), $crypt->decrypt($dbArray[2]), $crypt->decrypt($dbArray[3]), 'tick_system', $crypt->decrypt($dbArray[1]));
+        $tempCon->close();
+
+        $con = mysqli_connect($crypt->decrypt($dbInfo[0]), $crypt->decrypt($dbInfo[2]), $crypt->decrypt($dbInfo[3]), 'tick_system', $crypt->decrypt($dbInfo[1]));
 
         $query = "CREATE TABLE users
 (
@@ -61,15 +78,29 @@ switch ($request) {
 );";
 
         if($con->query($query) === TRUE) {
-            updateDB(true);
+            $fm->configFile->updateDbConfig(true);
         }
 
         header("Location: ../../setup.php");
 
         break;
-    case 'account_setup':
+
+    case 'createAdminUser':
+        if(!$fm->configFile->isDatabaseConfigured()) {
+            http_response_code(500);
+            exit();
+        }
+
+        include_once($_SERVER['DOCUMENT_ROOT'] . "/api/general/init.php");
+        global $con;
+
+        if($fm->adminAccount()) {
+            http_response_code(500);
+            exit("Admin account already exists.");
+        }
+
         if(!isset($_POST['admin_name']) || !isset($_POST['admin_email']) || !isset($_POST['admin_pass']) || !isset($_POST['admin_pass_conf'])) {
-            header("Location: ../../setup.php?e=true&msg=Error.");
+            header("Location: ../../setup.php?e=true&msg=Bad Admin Credentials.");
             exit();
         }
 
@@ -79,20 +110,6 @@ switch ($request) {
         $pass_conf = $_POST['admin_pass_conf'];
         $admin = 1;
 
-        $con = mysqli_connect($crypt->decrypt($dbArray[0]), $crypt->decrypt($dbArray[2]), $crypt->decrypt($dbArray[3]), 'tick_system', $crypt->decrypt($dbArray[1]));
-
-        $uid = random_int(1000, 9999);
-
-        if($stmt = $con->prepare("SELECT * FROM users WHERE is_admin = 1")) {
-            $stmt->execute();
-            $stmt->store_result();
-
-            if($stmt->num_rows > 0) {
-                http_response_code(500);
-                exit("Admin account exists already, aborting.");
-            }
-        }
-
         if($pass !== $pass_conf) {
             http_response_code(401);
             exit("Passwords Didn't Match.");
@@ -100,63 +117,27 @@ switch ($request) {
 
         $pass_prot = password_hash($pass, PASSWORD_DEFAULT);
 
-        if($stmt = $con->prepare("INSERT INTO users (username, email, password, is_admin, uid) VALUES (?, ?, ?, ?, ?) ")) {
+        $uid = random_int(1000, 9999);
+
+        if($stmt = $con->con->prepare("INSERT INTO users (username, email, password, is_admin, uid) VALUES (?, ?, ?, ?, ?) ")) {
             $stmt->bind_param("sssss", $name, $email, $pass_prot, $admin, $uid);
             $stmt->execute();
             $result = $stmt->get_result();
 
-            include_once($_SERVER['DOCUMENT_ROOT'] . '/api/user/User.php');
-            $user = new User($uid);
+            //include_once($_SERVER['DOCUMENT_ROOT'] . '/api/user/User.php');
+            //$user = new User($uid);
 
-            header("Location: ../../setup.php");
+            header("Location: ../../setup.php?e=false&msg=You wouldve been logged in and the setup is done.");
         } else {
             header("Location: ../../setup.php?e=true&msg=Error.");
             exit();
         }
 
         header("Location: ../../setup.php");
-    break;
+        break;
+
 
     default:
-        return;
-}
-
-function testDatabase($DB_ADDR, $DB_PORT, $DB_USER, $DB_PASS):bool
-{
-    try {
-        $conTest = mysqli_connect($DB_ADDR, $DB_USER, $DB_PASS, null, $DB_PORT);
-        if (!$conTest) {
-            http_response_code(500);
-            echo "Invalid Database Credentials -- Couldn't establish a connection to the database provided.";
-            return false;
-        }
-        mysqli_close($conTest);
-    } catch (mysqli_sql_exception $e) {
-        http_response_code(500);
-        echo "Database Error. Please ensure you have the correct database credentials!";
-        return false;
-    }
-
-    return true;
-}
-
-function configureDatabase($DB_ADDR, $DB_PORT, $DB_USER, $DB_PASS) {
-    global $setup;
-    global $crypt;
-
-    $homePath = $_SERVER['DOCUMENT_ROOT'] . '/files/';
-    $dbFile = $homePath . 'database.json';
-
-    $dbRead = file_get_contents($dbFile);
-    $dbData = json_decode($dbRead, true);
-
-    $dbData['db_address'] = $crypt->encrypt($DB_ADDR);
-    $dbData['db_port'] = $crypt->encrypt($DB_PORT);
-    $dbData['db_user'] = $crypt->encrypt($DB_USER);
-    $dbData['db_pass'] = $crypt->encrypt($DB_PASS);
-
-    $newJSON = json_encode($dbData, JSON_PRETTY_PRINT);
-    file_put_contents($dbFile, $newJSON);
-
-    $setup->updateDatabaseStatus(true);
+        // Nothing -- no errors.
+    break;
 }

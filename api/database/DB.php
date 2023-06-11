@@ -1,38 +1,52 @@
 <?php
 
-include_once ($_SERVER['DOCUMENT_ROOT'] . "/api/fileManager/DBFileManager.php");
-include_once($_SERVER['DOCUMENT_ROOT'] . '/api/crypt/Encryption.php');
+// Includes + Objects
+include_once($_SERVER['DOCUMENT_ROOT'] . "/api/setup/Crypt/Encryption.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/api/setup/FileManagers/FileManager.php");
 $crypt = new Encryption();
+$fm = new FileManager();
 
-$dbArray = getDBCredentials();
-
+/**
+ * This file gets the database connection information from
+ * database.json (configured in setup.php) and decrypts the
+ * encrypted strings to attempt a database connection.
+ *
+ * @author jiggey
+ * @since 1.0.0
+ * @last_update 2.0.0
+ */
 class DB
 {
 
-    private $DATABASE_NAME;
-    private $DATABASE_ADDRESS;
-    private $DATABASE_PORT;
-    private $DATABASE_USER;
-    private $DATABASE_PASS;
+    // Variables
+    private $DB_HOST;
+    private $DB_PORT;
+    private $DB_USER;
+    private $DB_PASS;
 
+    // How we access the database in other files ($example->con->prepare([SQL])).
     public mysqli $con;
 
-    public function __construct()
-    {
+    // Class constructor
+    public function __construct() {
+        // globals :(
         global $crypt;
-        global $dbArray;
-        global $DATABASE_NAME;
-        global $DATABASE_ADDRESS;
-        global $DATABASE_PORT;
-        global $DATABASE_PASS;
+        global $fm;
 
-        $DATABASE_NAME = "tick_system";
-        $DATABASE_ADDRESS = $crypt->decrypt($dbArray[0]);
-        $DATABASE_PORT = $crypt->decrypt($dbArray[1]);
-        $DATABASE_USER = $crypt->decrypt($dbArray[2]);
-        $DATABASE_PASS = $crypt->decrypt($dbArray[3]);
+        // Retrieve credentials from dbFile
+        $creds = $fm->dbFile->getDbInfo();
 
-        $this->con = mysqli_connect($DATABASE_ADDRESS, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME, $DATABASE_PORT);
+        // DB name won't change and is pre-configured before this file is
+        // reached (avoids db not found / no db selected errors).
+        $DB_NAME = "tick_system";
+        // Defining variables
+        $this->DB_HOST = $crypt->decrypt($creds[0]);
+        $this->DB_PORT = $crypt->decrypt($creds[1]);
+        $this->DB_USER = $crypt->decrypt($creds[2]);
+        $this->DB_PASS = $crypt->decrypt($creds[3]);
+
+        // Using the variables to connect.
+        $this->con = mysqli_connect($this->DB_HOST, $this->DB_USER, $this->DB_PASS, $DB_NAME, $this->DB_PORT);
     }
 
 }

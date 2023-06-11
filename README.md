@@ -1,6 +1,11 @@
 # PHP Self-Setup Demo
 ### Developed by https://github.com/jiggey1/
 
+# WARNING:
+I recently pushed a 'v2.0' to this repo, which was a complete recode of the setup process. The site should still function as normal.
+With this version, there is less error handling and validation, therefore caution should be taken if your planning to use this code.
+V2.0 removed un-needed code, improves site functionality and handles all functions alot better.
+
 # Prerequisites:
 MySQL >= 5.0 ; PHP >= 8.0
 

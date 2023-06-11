@@ -1,20 +1,15 @@
 <?php
 
-include_once($_SERVER['DOCUMENT_ROOT'] . '/api/fileManager/SetupFileManager.php');
-include_once($_SERVER['DOCUMENT_ROOT'] . '/api/database/DB.php');
-include_once($_SERVER['DOCUMENT_ROOT'] . '/api/user/User.php');
-include_once($_SERVER['DOCUMENT_ROOT'] . '/api/general/Session.php');
+$site_ver = '2.0.0';
 
-$setup = new SetupFileManager();
+include_once($_SERVER['DOCUMENT_ROOT'] . "/api/setup/FileManagers/FileManager.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/api/database/DB.php");
+global $fm;
 
-if(!$setup->getDatabaseStatus() || !$setup->isDatabaseReady()) {
-    echo "<script>window.location='./setup.php'</script>";
-    exit();
+if(!$fm->configFile->isDatabaseSetup()) {
+    http_response_code(500);
+    header("Location: ../../setup.php");
 }
 
 $con = new DB();
-$session = new Session();
 
-if(isset($_SESSION['uid'])) {
-    $user = new User($_SESSION['uid']);
-}
